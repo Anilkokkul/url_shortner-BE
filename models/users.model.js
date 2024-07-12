@@ -20,6 +20,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    activationToken: {
+      type: String,
+      required: true,
+    },
+    isActivated: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

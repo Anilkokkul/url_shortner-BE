@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { sendEmail } = require("../utils/sendEmail");
+const { sendActivationToken } = require("../utils/sendActivationToken");
 exports.registerUser = async (req, res) => {
   try {
     const payload = req.body;
@@ -16,20 +17,29 @@ exports.registerUser = async (req, res) => {
     if (!user) {
       // create new user and save it to the database
       const hashedValue = bcrypt.hashSync(payload.password, 10);
+      const activationToken = crypto.randomBytes(32).toString("hex");
       payload.hashedPassword = hashedValue;
+      payload.activationToken = activationToken;
       delete payload.password;
       user = new Users(payload);
-      await user
-        .save()
-        .then((data) => {
-          res.status(201).send({ message: "User created successfully!" });
-        })
-        .catch((error) => {
-          res.status(400).send({
-            message: "error while creating user",
-            error: error.message,
+      const activationTokenSent = await sendActivationToken(payload.email,activationToken);
+      if (activationTokenSent) {
+        await user
+          .save()
+          .then((data) => {
+            res.status(201).send({ message: "User created successfully! Please check your email to activate your account." });
+          })
+          .catch((error) => {
+            res.status(400).send({
+              message: "error while creating user",
+              error: error.message,
+            });
           });
-        });
+      } else {
+        res
+          .status(400)
+          .send({ message: "error while sending activation token" });
+      }
     } else {
       return res.status(409).send({ message: "Email already in use." });
     }
