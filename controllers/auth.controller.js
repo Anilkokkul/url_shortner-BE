@@ -22,12 +22,18 @@ exports.registerUser = async (req, res) => {
       payload.activationToken = activationToken;
       delete payload.password;
       user = new Users(payload);
-      const activationTokenSent = await sendActivationToken(payload.email,activationToken);
+      const activationTokenSent = await sendActivationToken(
+        payload.email,
+        activationToken
+      );
       if (activationTokenSent) {
         await user
           .save()
           .then((data) => {
-            res.status(201).send({ message: "User created successfully! Please check your email to activate your account." });
+            res.status(201).send({
+              message:
+                "User created successfully! Please check your email to activate your account.",
+            });
           })
           .catch((error) => {
             res.status(400).send({
@@ -42,6 +48,31 @@ exports.registerUser = async (req, res) => {
       }
     } else {
       return res.status(409).send({ message: "Email already in use." });
+    }
+  } catch (error) {
+    res.status(500).send({
+      message: "Internal Server Error",
+      Error: error.message,
+    });
+  }
+};
+
+exports.activateAccount = async (req, res) => {
+  try {
+    const { activationToken } = req.body;
+    const user = await Users.findOne({ activationToken: activationToken });
+    if (!user) {
+      res.status(404).send({
+        message: "User not found",
+      });
+    } else {
+      user.isActivated = true;
+      // user.activationToken = null;
+      user.save().then((data) => {
+        res.status(200).send({
+          message: "User activated successfully",
+        });
+      });
     }
   } catch (error) {
     res.status(500).send({
