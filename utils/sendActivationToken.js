@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
-exports.sendActivationToken = async (email,activationToken) => {
+exports.sendActivationToken = async (email, activationToken) => {
   const activationLink = `http://localhost:3000/activate/${activationToken}`;
   try {
     let transporter = await nodemailer.createTransport({

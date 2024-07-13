@@ -91,6 +91,11 @@ exports.loginUser = async (req, res) => {
         .status(401)
         .send({ message: "Invalid Email or email not registered" });
     }
+    if (!user.isActivated) {
+      return res
+        .status(401)
+        .send({ message: "Please activate your account first." });
+    }
     const isValidPass = bcrypt.compareSync(password, user.hashedPassword);
     if (!isValidPass) {
       return res.status(401).send({ message: "Invalid Password" });
