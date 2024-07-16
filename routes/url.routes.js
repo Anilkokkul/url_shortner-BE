@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.post("/short-url", urlShortener);
 
-router.get("/url/:shortId", getUrl);
+router.get("/:shortId", getUrl);
 
 module.exports = router;
